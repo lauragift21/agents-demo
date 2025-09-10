@@ -8,6 +8,14 @@ import { z } from "zod";
 import type { Chat } from "./server";
 import { getCurrentAgent } from "agents";
 import { unstable_scheduleSchema } from "agents/schedule";
+import {
+  searchFlights as svcSearchFlights,
+  searchHotels as svcSearchHotels,
+  getRecommendations as svcGetRecommendations,
+  estimateBudget as svcEstimateBudget,
+  bookFlight as svcBookFlight,
+  bookHotel as svcBookHotel
+} from "./services/travel";
 
 /**
  * Weather information tool that requires human confirmation
@@ -31,6 +39,74 @@ const getLocalTime = tool({
   execute: async ({ location }) => {
     console.log(`Getting local time for ${location}`);
     return "10am";
+  }
+});
+
+/**
+ * Travel search tools (auto-executed)
+ */
+const searchFlights = tool({
+  description:
+    "Search available flights given origin, destination, dates, passenger count, cabin and optional max price (USD)",
+  parameters: z.object({
+    origin: z.string().min(3).max(3).describe("Origin IATA code, e.g. SFO"),
+    destination: z.string().min(3).max(3).describe("Destination IATA code, e.g. LIS"),
+    departDate: z.string().describe("YYYY-MM-DD"),
+    returnDate: z.string().optional().describe("YYYY-MM-DD for round-trip"),
+    passengers: z.number().int().min(1).default(1),
+    cabin: z.enum(["economy", "premium_economy", "business", "first"]).optional(),
+    maxPrice: z.number().int().positive().optional()
+  }),
+  execute: async (args) => {
+    const results = await svcSearchFlights(args);
+    return results;
+  }
+});
+
+const searchHotels = tool({
+  description:
+    "Search available hotels given city, dates, guests, optional room count and budget (USD)",
+  parameters: z.object({
+    city: z.string().min(2),
+    checkIn: z.string().describe("YYYY-MM-DD"),
+    checkOut: z.string().describe("YYYY-MM-DD"),
+    guests: z.number().int().min(1).default(1),
+    roomCount: z.number().int().min(1).optional(),
+    budgetUSD: z.number().int().positive().optional()
+  }),
+  execute: async (args) => {
+    const results = await svcSearchHotels(args);
+    return results;
+  }
+});
+
+const getRecommendations = tool({
+  description:
+    "Get destination/activity recommendations based on interests, month/season and budget",
+  parameters: z.object({
+    interests: z.array(z.string()).optional(),
+    month: z.string().optional(),
+    budgetUSD: z.number().int().positive().optional()
+  }),
+  execute: async (args) => {
+    const recs = await svcGetRecommendations(args);
+    return recs;
+  }
+});
+
+const estimateTravelBudget = tool({
+  description:
+    "Estimate total trip budget; include flight max, hotel per-night, nights, activities and passenger count",
+  parameters: z.object({
+    flightMaxUSD: z.number().int().positive().optional(),
+    hotelPerNightUSD: z.number().int().positive().optional(),
+    nights: z.number().int().positive().optional(),
+    activitiesUSD: z.number().int().positive().optional(),
+    passengers: z.number().int().positive().optional()
+  }),
+  execute: async (args) => {
+    const est = await svcEstimateBudget(args);
+    return est;
   }
 });
 
@@ -110,15 +186,53 @@ const cancelScheduledTask = tool({
 });
 
 /**
+ * Booking tools (require confirmation): they are declared without execute.
+ * The actual booking happens in the `executions` object below after approval.
+ */
+const bookFlight = tool({
+  description:
+    "Book a selected flight by id with passenger details. Requires human confirmation.",
+  parameters: z.object({
+    flightId: z.string(),
+    passengers: z
+      .array(
+        z.object({ firstName: z.string().min(1), lastName: z.string().min(1) })
+      )
+      .min(1),
+    paymentToken: z.string().optional()
+  })
+});
+
+const bookHotel = tool({
+  description:
+    "Book a selected hotel by id with guest details and room count. Requires human confirmation.",
+  parameters: z.object({
+    hotelId: z.string(),
+    guest: z.object({ firstName: z.string().min(1), lastName: z.string().min(1) }),
+    rooms: z.number().int().min(1).default(1),
+    paymentToken: z.string().optional()
+  })
+});
+
+/**
  * Export all available tools
  * These will be provided to the AI model to describe available capabilities
  */
 export const tools = {
   getWeatherInformation,
   getLocalTime,
+  // Travel planning
+  searchFlights,
+  searchHotels,
+  getRecommendations,
+  estimateTravelBudget,
+  // Scheduling utilities
   scheduleTask,
   getScheduledTasks,
-  cancelScheduledTask
+  cancelScheduledTask,
+  // Booking (requires confirmation)
+  bookFlight,
+  bookHotel
 };
 
 /**
@@ -131,5 +245,31 @@ export const executions = {
   getWeatherInformation: async ({ city }: { city: string }) => {
     console.log(`Getting weather information for ${city}`);
     return `The weather in ${city} is sunny`;
+  },
+  bookFlight: async ({
+    flightId,
+    passengers,
+    paymentToken
+  }: {
+    flightId: string;
+    passengers: { firstName: string; lastName: string }[];
+    paymentToken?: string;
+  }) => {
+    const confirmation = await svcBookFlight({ flightId, passengers, paymentToken });
+    return confirmation;
+  },
+  bookHotel: async ({
+    hotelId,
+    guest,
+    rooms,
+    paymentToken
+  }: {
+    hotelId: string;
+    guest: { firstName: string; lastName: string };
+    rooms: number;
+    paymentToken?: string;
+  }) => {
+    const confirmation = await svcBookHotel({ hotelId, guest, rooms, paymentToken });
+    return confirmation;
   }
 };
