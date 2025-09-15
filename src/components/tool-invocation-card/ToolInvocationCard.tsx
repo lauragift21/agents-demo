@@ -111,30 +111,174 @@ export function ToolInvocationCard({
               <h5 className="text-xs font-medium mb-1 text-muted-foreground">
                 Result:
               </h5>
-              <pre className="bg-background/80 p-2 rounded-md text-xs overflow-auto whitespace-pre-wrap break-words max-w-[450px]">
-                {(() => {
-                  const result = toolInvocation.result;
-                  if (typeof result === "object" && result.content) {
-                    return result.content
-                      .map((item: { type: string; text: string }) => {
-                        if (
-                          item.type === "text" &&
-                          item.text.startsWith("\n~ Page URL:")
-                        ) {
-                          const lines = item.text.split("\n").filter(Boolean);
-                          return lines
-                            .map(
-                              (line: string) => `- ${line.replace("\n~ ", "")}`
-                            )
-                            .join("\n");
-                        }
-                        return item.text;
-                      })
-                      .join("\n");
+              {(() => {
+                const r: any = toolInvocation.result as any;
+                const tool = toolInvocation.toolName;
+                const arrayResult: any[] | null = Array.isArray(r)
+                  ? r
+                  : Array.isArray(r?.content)
+                    ? (r.content as any[])
+                    : null;
+
+                function fmt(dt?: string) {
+                  try {
+                    return dt ? new Date(dt).toLocaleString() : "";
+                  } catch {
+                    return dt ?? "";
                   }
-                  return JSON.stringify(result, null, 2);
-                })()}
-              </pre>
+                }
+
+                // Render searchFlights results
+                if (tool === "searchFlights" && arrayResult) {
+                  return (
+                    <div className="space-y-2">
+                      {arrayResult.length === 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          No flights found for your criteria.
+                        </p>
+                      )}
+                      {arrayResult.slice(0, 10).map((f: any) => (
+                        <div
+                          key={f.id}
+                          className="border border-neutral-200 dark:border-neutral-800 rounded-md p-2"
+                        >
+                          <div className="flex justify-between text-sm">
+                            <span className="font-medium">
+                              {f.carrier} {f.flightNumber}
+                            </span>
+                            {typeof f.priceUSD !== "undefined" && (
+                              <span className="text-[#F48120] font-semibold">{`$${f.priceUSD}`}</span>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            <div>
+                              Depart: {fmt(f.departTime)} • Arrive:{" "}
+                              {fmt(f.arriveTime)}
+                            </div>
+                            <div>
+                              Duration: {f.durationMinutes} min • Stops:{" "}
+                              {f.stops} • Cabin: {f.cabin}
+                            </div>
+                            <div>
+                              ID:{" "}
+                              <code className="px-1 py-0.5 bg-neutral-200/50 dark:bg-neutral-800/50 rounded">
+                                {f.id}
+                              </code>
+                            </div>
+                          </div>
+                          <div className="mt-2 flex justify-end">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                const prompt = `Book flight ${f.id} for Jane Doe`;
+                                navigator.clipboard?.writeText(prompt);
+                              }}
+                            >
+                              Copy booking prompt
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      <p className="text-[11px] text-muted-foreground">
+                        Use the copied prompt (or type your own) to proceed with
+                        booking. You’ll be asked to approve.
+                      </p>
+                    </div>
+                  );
+                }
+
+                // Render searchHotels results
+                if (tool === "searchHotels" && arrayResult) {
+                  return (
+                    <div className="space-y-2">
+                      {arrayResult.length === 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          No hotels found for your criteria.
+                        </p>
+                      )}
+                      {arrayResult.slice(0, 10).map((h: any) => (
+                        <div
+                          key={h.id}
+                          className="border border-neutral-200 dark:border-neutral-800 rounded-md p-2"
+                        >
+                          <div className="flex justify-between text-sm">
+                            <span className="font-medium">
+                              {h.name} {h.stars ? `(${h.stars}★)` : ""}
+                            </span>
+                            {typeof h.totalUSD !== "undefined" && (
+                              <span className="text-[#F48120] font-semibold">{`$${h.totalUSD}`}</span>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            <div>Location: {h.location}</div>
+                            <div>
+                              Check-in: {fmt(h.checkIn)} • Check-out:{" "}
+                              {fmt(h.checkOut)}
+                            </div>
+                            <div>
+                              Per night: {`$${h.pricePerNightUSD}`} • ID:{" "}
+                              <code className="px-1 py-0.5 bg-neutral-200/50 dark:bg-neutral-800/50 rounded">
+                                {h.id}
+                              </code>
+                            </div>
+                          </div>
+                          <div className="mt-2 flex justify-end">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                const prompt = `Book hotel ${h.id} for Jane Doe (1 room)`;
+                                navigator.clipboard?.writeText(prompt);
+                              }}
+                            >
+                              Copy booking prompt
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      <p className="text-[11px] text-muted-foreground">
+                        Use the copied prompt (or type your own) to proceed with
+                        booking. You’ll be asked to approve.
+                      </p>
+                    </div>
+                  );
+                }
+
+                // Fallback to prior rendering
+                return (
+                  <pre className="bg-background/80 p-2 rounded-md text-xs overflow-auto whitespace-pre-wrap break-words max-w-[450px]">
+                    {(() => {
+                      const result = toolInvocation.result;
+                      if (
+                        typeof result === "object" &&
+                        (result as any)?.content
+                      ) {
+                        return (result as any).content
+                          .map((item: { type: string; text: string }) => {
+                            if (
+                              item.type === "text" &&
+                              item.text.startsWith("\n~ Page URL:")
+                            ) {
+                              const lines = item.text
+                                .split("\n")
+                                .filter(Boolean);
+                              return lines
+                                .map(
+                                  (line: string) =>
+                                    `- ${line.replace("\n~ ", "")}`
+                                )
+                                .join("\n");
+                            }
+                            return item.text;
+                          })
+                          .join("\n");
+                      }
+                      return JSON.stringify(result, null, 2);
+                    })()}
+                  </pre>
+                );
+              })()}
             </div>
           )}
         </div>

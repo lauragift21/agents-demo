@@ -1,3 +1,8 @@
 OPENAI_API_KEY=sk-proj-1234567890
 # Optional - Cloudflare AI Gateway https://developers.cloudflare.com/ai-gateway/
 # GATEWAY_BASE_URL=https://gateway.ai.cloudflare.com/v1/..
+# Amadeus API credentials (use test/sandbox keys for development)
+AMADEUS_CLIENT_ID=your_amadeus_client_id
+AMADEUS_CLIENT_SECRET=your_amadeus_client_secret
+# Set to "true" to disable mock fallbacks and see empty results on API failure
+# DISABLE_TRAVEL_MOCKS=true

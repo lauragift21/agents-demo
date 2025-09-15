@@ -174,9 +174,12 @@ export default function Chat() {
                   <div className="bg-[#F48120]/10 text-[#F48120] rounded-full p-3 inline-flex">
                     <Robot size={24} />
                   </div>
-                  <h3 className="font-semibold text-lg">Welcome to AI Travel Planner</h3>
+                  <h3 className="font-semibold text-lg">
+                    Welcome to AI Travel Planner
+                  </h3>
                   <p className="text-muted-foreground text-sm">
-                    Start planning your trip with your AI travel assistant. Try asking about:
+                    Start planning your trip with your AI travel assistant. Try
+                    asking about:
                   </p>
                   <ul className="text-sm text-left space-y-2">
                     <li className="flex items-center gap-2">
@@ -185,15 +188,21 @@ export default function Chat() {
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="text-[#F48120]">•</span>
-                      <span>Search flights (SFO → LIS on Oct 10, return Oct 16)</span>
+                      <span>
+                        Search flights (SFO → LIS on Oct 10, return Oct 16)
+                      </span>
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="text-[#F48120]">•</span>
-                      <span>Find hotels in Lisbon for 2 guests within a $600 budget</span>
+                      <span>
+                        Find hotels in Lisbon for 2 guests within a $600 budget
+                      </span>
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="text-[#F48120]">•</span>
-                      <span>Book the selected flight and hotel (with approval)</span>
+                      <span>
+                        Book the selected flight and hotel (with approval)
+                      </span>
                     </li>
                   </ul>
                 </div>

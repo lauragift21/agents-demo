@@ -10,17 +10,19 @@ import {
   type StreamTextOnFinishCallback,
   type ToolSet
 } from "ai";
-import { openai } from "@ai-sdk/openai";
+import { createOpenAI } from "@ai-sdk/openai";
 import { processToolCalls } from "./utils";
 import { tools, executions } from "./tools";
-// import { env } from "cloudflare:workers";
+import { env } from "cloudflare:workers";
+
+// Cloudflare AI Gateway (optional baseURL). If GATEWAY_BASE_URL is not set,
+// the AI SDK will use the provider's default.
+const openai = createOpenAI({
+  apiKey: env.OPENAI_API_KEY,
+  baseURL: env.GATEWAY_BASE_URL || undefined
+});
 
 const model = openai("gpt-4o-2024-11-20");
-// Cloudflare AI Gateway
-// const openai = createOpenAI({
-//   apiKey: env.OPENAI_API_KEY,
-//   baseURL: env.GATEWAY_BASE_URL,
-// });
 
 /**
  * Chat Agent implementation that handles real-time AI chat interactions
@@ -121,12 +123,57 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === "/check-open-ai-key") {
-      const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
+      const hasOpenAIKey = !!env.OPENAI_API_KEY;
       return Response.json({
         success: hasOpenAIKey
       });
     }
-    if (!process.env.OPENAI_API_KEY) {
+
+    // Simple Amadeus readiness check: verifies env vars and token fetch
+    if (url.pathname === "/check-amadeus") {
+      const hasKeys = !!env.AMADEUS_CLIENT_ID && !!env.AMADEUS_CLIENT_SECRET;
+      if (!hasKeys) {
+        return Response.json(
+          { ok: false, reason: "Missing AMADEUS credentials" },
+          { status: 400 }
+        );
+      }
+      try {
+        const body = new URLSearchParams({
+          grant_type: "client_credentials",
+          client_id: env.AMADEUS_CLIENT_ID!,
+          client_secret: env.AMADEUS_CLIENT_SECRET!
+        });
+        const res = await fetch(
+          "https://test.api.amadeus.com/v1/security/oauth2/token",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body
+          }
+        );
+        const ok = res.ok;
+        const json: any = ok ? await res.json() : { error: await res.text() };
+        return Response.json(
+          {
+            ok,
+            hasKeys,
+            tokenPreview: ok
+              ? String(json.access_token || "").slice(0, 8)
+              : undefined,
+            error: ok ? undefined : json
+          },
+          { status: ok ? 200 : 502 }
+        );
+      } catch (e: any) {
+        return Response.json(
+          { ok: false, hasKeys: true, error: String(e) },
+          { status: 500 }
+        );
+      }
+    }
+
+    if (!env.OPENAI_API_KEY) {
       console.error(
         "OPENAI_API_KEY is not set, don't forget to set it locally in .dev.vars, and use `wrangler secret bulk .dev.vars` to upload it to production"
       );

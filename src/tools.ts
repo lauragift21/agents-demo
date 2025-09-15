@@ -50,11 +50,17 @@ const searchFlights = tool({
     "Search available flights given origin, destination, dates, passenger count, cabin and optional max price (USD)",
   parameters: z.object({
     origin: z.string().min(3).max(3).describe("Origin IATA code, e.g. SFO"),
-    destination: z.string().min(3).max(3).describe("Destination IATA code, e.g. LIS"),
+    destination: z
+      .string()
+      .min(3)
+      .max(3)
+      .describe("Destination IATA code, e.g. LIS"),
     departDate: z.string().describe("YYYY-MM-DD"),
     returnDate: z.string().optional().describe("YYYY-MM-DD for round-trip"),
     passengers: z.number().int().min(1).default(1),
-    cabin: z.enum(["economy", "premium_economy", "business", "first"]).optional(),
+    cabin: z
+      .enum(["economy", "premium_economy", "business", "first"])
+      .optional(),
     maxPrice: z.number().int().positive().optional()
   }),
   execute: async (args) => {
@@ -208,7 +214,10 @@ const bookHotel = tool({
     "Book a selected hotel by id with guest details and room count. Requires human confirmation.",
   parameters: z.object({
     hotelId: z.string(),
-    guest: z.object({ firstName: z.string().min(1), lastName: z.string().min(1) }),
+    guest: z.object({
+      firstName: z.string().min(1),
+      lastName: z.string().min(1)
+    }),
     rooms: z.number().int().min(1).default(1),
     paymentToken: z.string().optional()
   })
@@ -255,7 +264,11 @@ export const executions = {
     passengers: { firstName: string; lastName: string }[];
     paymentToken?: string;
   }) => {
-    const confirmation = await svcBookFlight({ flightId, passengers, paymentToken });
+    const confirmation = await svcBookFlight({
+      flightId,
+      passengers,
+      paymentToken
+    });
     return confirmation;
   },
   bookHotel: async ({
@@ -269,7 +282,12 @@ export const executions = {
     rooms: number;
     paymentToken?: string;
   }) => {
-    const confirmation = await svcBookHotel({ hotelId, guest, rooms, paymentToken });
+    const confirmation = await svcBookHotel({
+      hotelId,
+      guest,
+      rooms,
+      paymentToken
+    });
     return confirmation;
   }
 };
