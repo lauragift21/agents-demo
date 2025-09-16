@@ -1,4 +1,7 @@
+// Mock travel service with typed interfaces and stub data
 import { env } from "cloudflare:workers";
+// Use a relaxed view of env to avoid TS issues with custom keys in Env
+const E = env as any;
 
 export type CabinClass = "economy" | "premium_economy" | "business" | "first";
 
@@ -13,38 +16,38 @@ export interface FlightSearchParams {
 }
 
 // Resolve a human city name (e.g., "Lisbon") to a 3-letter city code (e.g., "LIS") using Amadeus Locations API
-async function resolveCityToCode(
-  token: string,
-  input: string
-): Promise<string | null> {
+async function resolveCityToCode(token: string, input: string): Promise<string | null> {
   const trimmed = (input || "").trim();
   if (!trimmed) return null;
   // If already a 3-letter code, use it as-is
   if (/^[A-Z]{3}$/.test(trimmed.toUpperCase())) {
     return trimmed.toUpperCase();
   }
-  const params = new URLSearchParams({
-    keyword: trimmed,
-    subType: "CITY"
-  });
+  // Strategy: try Cities endpoint first (narrower), then generic Locations as a fallback
+  const citiesParams = new URLSearchParams({ keyword: trimmed });
+  const citiesRes = await fetch(
+    `https://test.api.amadeus.com/v1/reference-data/locations/cities?${citiesParams.toString()}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (citiesRes.ok) {
+    try {
+      const cities = (await citiesRes.json()) as any;
+      const firstCity = Array.isArray(cities?.data) ? cities.data[0] : null;
+      if (firstCity?.iataCode) return String(firstCity.iataCode);
+    } catch {}
+  }
+
+  const params = new URLSearchParams({ keyword: trimmed, subType: "CITY" });
   const res = await fetch(
     `https://test.api.amadeus.com/v1/reference-data/locations?${params.toString()}`,
-    {
-      headers: { Authorization: `Bearer ${token}` }
-    }
+    { headers: { Authorization: `Bearer ${token}` } }
   );
   if (!res.ok) {
-    console.error(
-      "Amadeus city resolve error",
-      res.status,
-      await safeText(res)
-    );
+    console.error("Amadeus city resolve error", res.status, await safeText(res));
     return null;
   }
   const data = (await res.json()) as any;
-  const first = Array.isArray(data?.data)
-    ? data.data.find((d: any) => d?.iataCode)
-    : null;
+  const first = Array.isArray(data?.data) ? data.data.find((d: any) => d?.iataCode) : null;
   return first?.iataCode ?? null;
 }
 
@@ -227,9 +230,8 @@ const mockHotels: HotelOption[] = [
 export async function searchFlights(
   params: FlightSearchParams
 ): Promise<FlightOption[]> {
-  const hasAmadeus = !!env.AMADEUS_CLIENT_ID && !!env.AMADEUS_CLIENT_SECRET;
-  const disableMocks =
-    String(env.DISABLE_TRAVEL_MOCKS || "").toLowerCase() === "true";
+  const hasAmadeus = !!E.AMADEUS_CLIENT_ID && !!E.AMADEUS_CLIENT_SECRET;
+  const disableMocks = String(E.DISABLE_TRAVEL_MOCKS || "").toLowerCase() === "true";
 
   if (!hasAmadeus && !disableMocks) {
     // Fallback to mock
@@ -243,10 +245,7 @@ export async function searchFlights(
   }
 
   // Use Amadeus Flight Offers Search API (test env)
-  const token = await getAmadeusAccessToken(
-    env.AMADEUS_CLIENT_ID!,
-    env.AMADEUS_CLIENT_SECRET!
-  );
+  const token = await getAmadeusAccessToken(E.AMADEUS_CLIENT_ID!, E.AMADEUS_CLIENT_SECRET!);
 
   const travelClass = (params.cabin ?? "economy")
     .toUpperCase()
@@ -295,9 +294,8 @@ export async function searchHotels(
     )
   );
 
-  const hasAmadeus = !!env.AMADEUS_CLIENT_ID && !!env.AMADEUS_CLIENT_SECRET;
-  const disableMocks =
-    String(env.DISABLE_TRAVEL_MOCKS || "").toLowerCase() === "true";
+  const hasAmadeus = !!E.AMADEUS_CLIENT_ID && !!E.AMADEUS_CLIENT_SECRET;
+  const disableMocks = String(E.DISABLE_TRAVEL_MOCKS || "").toLowerCase() === "true";
   if (!hasAmadeus && !disableMocks) {
     // No credentials available: keep mock fallback
     return mockHotels
@@ -310,10 +308,7 @@ export async function searchHotels(
     return [];
   }
 
-  const token = await getAmadeusAccessToken(
-    env.AMADEUS_CLIENT_ID!,
-    env.AMADEUS_CLIENT_SECRET!
-  );
+  const token = await getAmadeusAccessToken(E.AMADEUS_CLIENT_ID!, E.AMADEUS_CLIENT_SECRET!);
 
   // Resolve city to a cityCode if needed
   const cityCode = await resolveCityToCode(token, params.city);
@@ -327,6 +322,13 @@ export async function searchHotels(
       );
   }
 
+  // Debug logging for city resolution and query
+  try {
+    console.log(
+      `[Hotels] Resolved city "${params.city}" to code ${cityCode} | dates ${params.checkIn} -> ${params.checkOut} | guests ${params.guests} | rooms ${params.roomCount ?? 1}`
+    );
+  } catch {}
+
   const query = new URLSearchParams({
     cityCode,
     checkInDate: params.checkIn,
@@ -334,6 +336,13 @@ export async function searchHotels(
     adults: String(params.guests ?? 1),
     currencyCode: "USD"
   });
+  if (params.roomCount && params.roomCount > 0) {
+    query.set("roomQuantity", String(params.roomCount));
+  }
+
+  try {
+    console.log(`[Hotels] Query: ${query.toString()}`);
+  } catch {}
 
   const res = await fetch(
     `https://test.api.amadeus.com/v2/shopping/hotel-offers?${query.toString()}`,

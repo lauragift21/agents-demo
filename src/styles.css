@@ -310,3 +310,17 @@
     transform: rotate(360deg) scale(0.9);
   }
 }
+
+/* Claude-like background and card aesthetics */
+.app-bg {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, color-mix(in oklch, var(--color-ob-base-300) 30%, transparent) 0%, transparent 60%),
+    radial-gradient(1000px 600px at 110% 0%, color-mix(in oklch, var(--color-ob-base-400) 20%, transparent) 0%, transparent 60%),
+    linear-gradient(to bottom, var(--color-ob-base-200), var(--color-ob-base-100));
+}
+
+.glass-card {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+}

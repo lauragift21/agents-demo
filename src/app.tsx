@@ -15,9 +15,9 @@ import { ToolInvocationCard } from "@/components/tool-invocation-card/ToolInvoca
 
 // Icon imports
 import {
+  AirplaneTilt,
   Bug,
   Moon,
-  Robot,
   Sun,
   Trash,
   PaperPlaneTilt,
@@ -70,6 +70,32 @@ export default function Chat() {
     setTheme(newTheme);
   };
 
+  // Trip mode removed
+
+  // Travel-focused quick actions for the landing view
+  const quickActions: { label: string; prompt: string }[] = [
+    {
+      label: "City trip",
+      prompt: "Plan a 3-day city break in Lisbon with food and culture highlights"
+    },
+    {
+      label: "Find flights",
+      prompt: "Search flights AMS → LIS leaving Oct 8 and returning Oct 16 under $800 for one passenger"
+    },
+    {
+      label: "Stay options",
+      prompt: "Find hotels in Lisbon for 2 guests with great walkability, budget $600"
+    },
+    {
+      label: "Itinerary",
+      prompt: "Create a 5-day Portugal itinerary covering Lisbon, Sintra, and Porto"
+    },
+    {
+      label: "Packing list",
+      prompt: "Make a minimalist packing list for autumn travel in Portugal"
+    }
+  ];
+
   const agent = useAgent({
     agent: "chat"
   });
@@ -109,9 +135,9 @@ export default function Chat() {
   };
 
   return (
-    <div className="h-[100vh] w-full p-4 flex justify-center items-center bg-fixed overflow-hidden">
+    <div className="h-[100vh] w-full p-4 flex justify-center items-center bg-fixed overflow-hidden app-bg">
       <HasOpenAIKey />
-      <div className="h-[calc(100vh-2rem)] w-full mx-auto max-w-lg flex flex-col shadow-xl rounded-md overflow-hidden relative border border-neutral-300 dark:border-neutral-800">
+      <div className="h-[calc(100vh-2rem)] w-full mx-auto max-w-3xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl flex flex-col shadow-xl rounded-md overflow-hidden relative border border-neutral-300 dark:border-neutral-800">
         <div className="px-4 py-3 border-b border-neutral-300 dark:border-neutral-800 flex items-center gap-3 sticky top-0 z-10">
           <div className="flex items-center justify-center h-8 w-8">
             <svg
@@ -130,9 +156,10 @@ export default function Chat() {
               <use href="#ai:local:agents" />
             </svg>
           </div>
-
           <div className="flex-1">
-            <h2 className="font-semibold text-base">AI Travel Planner</h2>
+            <h2 className="font-semibold text-base bg-gradient-to-r from-[#F48120] to-amber-400 bg-clip-text text-transparent">
+              AI Travel Planner
+            </h2>
           </div>
 
           <div className="flex items-center gap-2 mr-2">
@@ -143,6 +170,8 @@ export default function Chat() {
               onClick={() => setShowDebug((prev) => !prev)}
             />
           </div>
+
+          {/* Trip mode UI removed */}
 
           <Button
             variant="ghost"
@@ -168,45 +197,85 @@ export default function Chat() {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-24 max-h-[calc(100vh-10rem)]">
           {agentMessages.length === 0 && (
-            <div className="h-full flex items-center justify-center">
-              <Card className="p-6 max-w-md mx-auto bg-neutral-100 dark:bg-neutral-900">
-                <div className="text-center space-y-4">
-                  <div className="bg-[#F48120]/10 text-[#F48120] rounded-full p-3 inline-flex">
-                    <Robot size={24} />
+            <div className="h-full w-full flex items-center justify-center">
+              <div className="w-full max-w-2xl mx-auto">
+                <div className="text-center mb-6 select-none">
+                  <div className="inline-flex items-center justify-center rounded-full bg-[#F48120]/10 text-[#F48120] p-3 mb-3">
+                    <AirplaneTilt size={24} />
                   </div>
-                  <h3 className="font-semibold text-lg">
-                    Welcome to AI Travel Planner
-                  </h3>
-                  <p className="text-muted-foreground text-sm">
-                    Start planning your trip with your AI travel assistant. Try
-                    asking about:
-                  </p>
-                  <ul className="text-sm text-left space-y-2">
-                    <li className="flex items-center gap-2">
-                      <span className="text-[#F48120]">•</span>
-                      <span>Plan a 5-day trip to Lisbon under $1,500</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-[#F48120]">•</span>
-                      <span>
-                        Search flights (SFO → LIS on Oct 10, return Oct 16)
-                      </span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-[#F48120]">•</span>
-                      <span>
-                        Find hotels in Lisbon for 2 guests within a $600 budget
-                      </span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-[#F48120]">•</span>
-                      <span>
-                        Book the selected flight and hotel (with approval)
-                      </span>
-                    </li>
-                  </ul>
+                  <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
+                    Where to next?
+                  </h1>
                 </div>
-              </Card>
+                <Card className="glass-card p-2 md:p-3 bg-neutral-100/60 dark:bg-neutral-900/60">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleAgentSubmit(e, {
+                        data: { annotations: { hello: "world" } }
+                      });
+                      setTextareaHeight("auto");
+                    }}
+                  >
+                    <div className="flex items-end gap-2">
+                      <Textarea
+                        disabled={pendingToolCallConfirmation}
+                        placeholder={
+                          pendingToolCallConfirmation
+                            ? "Please respond to the tool confirmation above..."
+                            : "Where are you traveling and when?"
+                        }
+                        className="flex w-full border border-neutral-200/60 dark:border-neutral-800/60 px-4 py-3 ring-offset-background placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-300 dark:focus-visible:ring-neutral-700 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900 disabled:cursor-not-allowed disabled:opacity-50 md:text-base min-h-[48px] max-h-[calc(70dvh)] overflow-hidden resize-none rounded-2xl !text-base dark:bg-neutral-900/60"
+                        value={agentInput}
+                        onChange={(e) => {
+                          handleAgentInputChange(e);
+                          e.target.style.height = "auto";
+                          e.target.style.height = `${e.target.scrollHeight}px`;
+                          setTextareaHeight(`${e.target.scrollHeight}px`);
+                        }}
+                        onKeyDown={(e) => {
+                          if (
+                            e.key === "Enter" &&
+                            !e.shiftKey &&
+                            !(e as unknown as { nativeEvent?: { isComposing?: boolean } }).nativeEvent?.isComposing
+                          ) {
+                            e.preventDefault();
+                            handleAgentSubmit(e as unknown as React.FormEvent);
+                            setTextareaHeight("auto");
+                          }
+                        }}
+                        rows={2}
+                        style={{ height: textareaHeight }}
+                      />
+                      <button
+                        type="submit"
+                        className="inline-flex items-center cursor-pointer justify-center gap-2 whitespace-nowrap text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-full p-2 h-fit border border-neutral-200 dark:border-neutral-800"
+                        disabled={pendingToolCallConfirmation || !agentInput.trim()}
+                        aria-label="Send message"
+                      >
+                        <PaperPlaneTilt size={18} />
+                      </button>
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {quickActions.map(({ label, prompt }) => (
+                        <button
+                          key={label}
+                          type="button"
+                          onClick={() => {
+                            const event = {
+                              target: { value: prompt }
+                            } as unknown as React.ChangeEvent<HTMLTextAreaElement>;
+                            handleAgentInputChange(event);
+                          }}
+                          className="text-xs md:text-sm px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-850 transition-colors"
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </form>
+                </Card>
+              </div>
             </div>
           )}
 
@@ -226,7 +295,7 @@ export default function Chat() {
                   className={`flex ${isUser ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`flex gap-2 max-w-[85%] ${
+                    className={`flex gap-2 max-w-[95%] ${
                       isUser ? "flex-row-reverse" : "flex-row"
                     }`}
                   >
@@ -317,6 +386,7 @@ export default function Chat() {
         </div>
 
         {/* Input Area */}
+        {agentMessages.length > 0 && (
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -387,6 +457,7 @@ export default function Chat() {
             </div>
           </div>
         </form>
+        )}
       </div>
     </div>
   );
