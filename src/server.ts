@@ -129,7 +129,6 @@ export default {
       });
     }
 
-    // Simple Amadeus readiness check: verifies env vars and token fetch
     if (url.pathname === "/check-amadeus") {
       const hasKeys = !!env.AMADEUS_CLIENT_ID && !!env.AMADEUS_CLIENT_SECRET;
       if (!hasKeys) {

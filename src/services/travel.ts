@@ -321,16 +321,45 @@ export async function searchHotels(
         params.budgetUSD ? h.totalUSD <= params.budgetUSD : true
       );
   }
+  
+  // Step 1: Get hotelIds for the city (Amadeus requires hotelIds for v3 offers)
+  const hotelsRes = await fetch(
+    `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city?cityCode=${encodeURIComponent(
+      cityCode
+    )}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (!hotelsRes.ok) {
+    console.error("Amadeus by-city hotels error", hotelsRes.status, await safeText(hotelsRes));
+    if (disableMocks) return [];
+    return mockHotels
+      .map((h) => ({ ...h, totalUSD: h.pricePerNightUSD * nights }))
+      .filter((h) => (params.budgetUSD ? h.totalUSD <= params.budgetUSD : true));
+  }
+  const hotelsData: any = await hotelsRes.json();
+  const hotelIds: string[] = Array.isArray(hotelsData?.data)
+    ? hotelsData.data
+        .map((h: any) => h?.hotelId)
+        .filter((id: any) => typeof id === "string")
+    : [];
+  // Limit number of IDs to keep URL reasonable
+  const limitedHotelIds = hotelIds.slice(0, 20);
+  if (limitedHotelIds.length === 0) {
+    if (disableMocks) return [];
+    return mockHotels
+      .map((h) => ({ ...h, totalUSD: h.pricePerNightUSD * nights }))
+      .filter((h) => (params.budgetUSD ? h.totalUSD <= params.budgetUSD : true));
+  }
 
-  // Debug logging for city resolution and query
+  // Debug logging for query
   try {
     console.log(
-      `[Hotels] Resolved city "${params.city}" to code ${cityCode} | dates ${params.checkIn} -> ${params.checkOut} | guests ${params.guests} | rooms ${params.roomCount ?? 1}`
+      `[Hotels] Resolved city "${params.city}" to code ${cityCode} | hotelIds ${limitedHotelIds.length} | dates ${params.checkIn} -> ${params.checkOut} | guests ${params.guests} | rooms ${params.roomCount ?? 1}`
     );
   } catch {}
 
   const query = new URLSearchParams({
-    cityCode,
+    hotelIds: limitedHotelIds.join(","),
     checkInDate: params.checkIn,
     checkOutDate: params.checkOut,
     adults: String(params.guests ?? 1),
@@ -340,12 +369,8 @@ export async function searchHotels(
     query.set("roomQuantity", String(params.roomCount));
   }
 
-  try {
-    console.log(`[Hotels] Query: ${query.toString()}`);
-  } catch {}
-
   const res = await fetch(
-    `https://test.api.amadeus.com/v2/shopping/hotel-offers?${query.toString()}`,
+    `https://test.api.amadeus.com/v3/shopping/hotel-offers?${query.toString()}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
   if (!res.ok) {
