@@ -2,7 +2,7 @@
 
 /* Markdown Table Styling (Tailwind @apply) */
 .markdown-body table {
-  @apply w-full border-collapse my-4 text-[0.95em];
+  @apply w-full border-collapse my-4 text-[1.14em];
 }
 .markdown-body th,
 .markdown-body td {
@@ -30,7 +30,7 @@
   @apply leading-relaxed mb-1;
 }
 .markdown-body code {
-  @apply rounded bg-neutral-100 dark:bg-neutral-900 px-1 py-0.5 text-[0.95em];
+  @apply rounded bg-neutral-100 dark:bg-neutral-900 px-1 py-0.5 text-[1.14em];
 }
 .markdown-body pre {
   @apply overflow-x-auto rounded border border-border p-3 my-3 bg-neutral-50 dark:bg-neutral-900;
@@ -38,7 +38,7 @@
 
 /* Agent-only markdown polish */
 .chat-bubble-agent .markdown-body {
-  @apply text-[13px] md:text-[14px];
+  @apply text-[15.6px] md:text-[16.8px];
 }
 .chat-bubble-agent .markdown-body h1,
 .chat-bubble-agent .markdown-body h2,
@@ -50,7 +50,7 @@
 }
 .chat-bubble-agent .markdown-body h1 { @apply text-lg; }
 .chat-bubble-agent .markdown-body h2 { @apply text-base; }
-.chat-bubble-agent .markdown-body h3 { @apply text-[15px]; }
+.chat-bubble-agent .markdown-body h3 { @apply text-[18px]; }
 .chat-bubble-agent .markdown-body a {
   @apply underline underline-offset-2 decoration-neutral-400 hover:decoration-neutral-600 dark:decoration-neutral-600 dark:hover:decoration-neutral-400;
 }
@@ -64,7 +64,7 @@
   @apply max-w-full h-auto rounded border border-border my-2;
 }
 .chat-bubble-agent .markdown-body pre code {
-  @apply text-[12.5px] leading-6;
+  @apply text-[15px] leading-6;
 }
 
 /* Custom variants */
@@ -77,13 +77,13 @@
 /* Tailwind config */
 @theme {
   /* Type */
-  --text-xs: 10px;
+  --text-xs: 12px;
   --text-xs--line-height: calc(1 / 0.5);
 
-  --text-sm: 12px;
+  --text-sm: 14.4px;
   --text-sm--line-height: calc(1 / 0.75);
 
-  --text-base: 14px;
+  --text-base: 16.8px;
   --text-base--line-height: calc(1.25 / 0.875);
 
   /* Easings & transitions */
@@ -456,7 +456,7 @@
   }
 
   .chat-bubble-agent {
-    @apply bg-neutral-100 dark:bg-neutral-900 text-text border-4 border-border shadow-[4px_4px_0_0_#000] p-3 rounded-none leading-relaxed break-words whitespace-pre-wrap text-[13px] md:text-[14px] max-w-[85vw] md:max-w-[70%];
+    @apply bg-neutral-100 dark:bg-neutral-900 text-text border-4 border-border shadow-[4px_4px_0_0_#000] p-3 rounded-none leading-relaxed break-words whitespace-pre-wrap text-[15.6px] md:text-[16.8px] max-w-[85vw] md:max-w-[70%];
   }
 
   .card-panel {
