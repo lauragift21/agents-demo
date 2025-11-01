@@ -72,6 +72,22 @@
   --color-blue-400: oklch(0.707 0.165 254.624);
   --color-blue-800: oklch(0.424 0.199 265.638);
 
+  /* Retro theme (base) - will be overridden by .dark/.light */
+  --color-bg: #0a0a0a;
+  --color-panel: #111111;
+  --color-border: #1a1a1a;
+  --color-text: #f5f5f5;
+  --color-muted: #a3a3a3;
+  --color-accent: #ffffff; /* unused for color, kept neutral */
+  --color-accent2: #e5e5e5;
+  --color-accent3: #d4d4d4;
+  --color-accent4: #737373;
+  --color-cfOrange: #000000; /* not used; kept for compatibility */
+
+  /* Fonts */
+  --font-pixel: "Press Start 2P", cursive;
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+
   /* Component colors */
 
   /* Base colors */
@@ -155,6 +171,32 @@
 
   /* Focus colors */
   --color-ob-focus: var(--color-blue-800);
+
+  /* Retro theme (dark) overrides - monochrome */
+  --color-bg: #0a0a0a;
+  --color-panel: #111111;
+  --color-border: #e5e5e5; /* light border for contrast on dark */
+  --color-text: #f5f5f5;
+  --color-muted: #a3a3a3;
+  --color-accent: #ffffff;
+  --color-accent2: #d4d4d4;
+  --color-accent3: #a3a3a3;
+  --color-accent4: #737373;
+  --color-cfOrange: #000000;
+}
+
+/* Retro theme (light) overrides */
+.light {
+  --color-bg: #ffffff;
+  --color-panel: #f7f7f7;
+  --color-border: #0a0a0a; /* dark border for contrast on light */
+  --color-text: #0a0a0a;
+  --color-muted: #555555;
+  --color-accent: #0a0a0a;
+  --color-accent2: #1a1a1a;
+  --color-accent3: #737373;
+  --color-accent4: #a3a3a3;
+  --color-cfOrange: #0a0a0a;
 }
 
 .btn {
@@ -323,4 +365,59 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+}
+
+/* Retro Cloudflare component classes */
+@layer components {
+  /* Minimal monochrome helpers */
+  .mono-grid {
+    background-image:
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.05), rgba(0,0,0,0.05) 1px, transparent 1px, transparent 16px),
+      repeating-linear-gradient(90deg, rgba(0,0,0,0.05), rgba(0,0,0,0.05) 1px, transparent 1px, transparent 16px);
+    background-size: 16px 16px;
+  }
+  .dark .mono-grid {
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.06), rgba(255,255,255,0.06) 1px, transparent 1px, transparent 16px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.06) 1px, transparent 1px, transparent 16px);
+  }
+
+  .pixel-frame {
+    position: relative;
+  }
+  .pixel-frame::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border: 4px solid var(--color-border);
+    pointer-events: none;
+  }
+  .pixel-btn {
+    @apply inline-block bg-white text-black font-pixel uppercase border-4 border-black shadow-[4px_4px_0_0_#000] px-4 py-2 transition-transform;
+  }
+  .pixel-btn:hover {
+    @apply -translate-x-0.5 -translate-y-0.5 shadow-[6px_6px_0_0_#000];
+  }
+  .pixel-btn-alt {
+    @apply bg-neutral-200 text-black;
+  }
+
+  .chat-bubble-user {
+    @apply bg-panel text-text border-4 border-border shadow-[4px_4px_0_0_#000] p-3 rounded-none;
+  }
+
+  .chat-bubble-agent {
+    @apply bg-panel text-text border-4 border-border shadow-[4px_4px_0_0_#000] p-3 rounded-none;
+  }
+
+  .card-panel {
+    @apply bg-panel border-4 border-border shadow-[4px_4px_0_0_#000] p-4 rounded-none;
+  }
+
+  .separator {
+    background: linear-gradient(90deg, #000 0 25%, transparent 25% 50%, #666 50% 75%, transparent 75% 100%),
+                linear-gradient(#000, #000);
+    background-size: 48px 8px, 100% 2px;
+    height: 8px;
+  }
 }

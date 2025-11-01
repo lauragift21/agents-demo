@@ -135,15 +135,15 @@ export default function Chat() {
   };
 
   return (
-    <div className="h-[100vh] w-full p-4 flex justify-center items-center bg-fixed overflow-hidden app-bg">
+    <div className="min-h-screen w-full p-4 flex justify-center items-center overflow-hidden bg-bg text-text font-sans">
       <HasOpenAIKey />
-      <div className="h-[calc(100vh-2rem)] w-full mx-auto max-w-3xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl flex flex-col shadow-xl rounded-md overflow-hidden relative border border-neutral-300 dark:border-neutral-800">
-        <div className="px-4 py-3 border-b border-neutral-300 dark:border-neutral-800 flex items-center gap-3 sticky top-0 z-10">
+      <div className="h-[calc(100vh-2rem)] w-full mx-auto max-w-3xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl flex flex-col overflow-hidden relative bg-panel border-4 border-border shadow-[6px_6px_0_0_#000] rounded-none mono-grid pixel-frame">
+        <div className="px-4 py-3 bg-panel border-b-4 border-border flex items-center gap-3 sticky top-0 z-10">
           <div className="flex items-center justify-center h-8 w-8">
             <svg
               width="28px"
               height="28px"
-              className="text-[#F48120]"
+              className="text-text"
               data-icon="agents"
             >
               <title>Cloudflare Agents</title>
@@ -157,7 +157,7 @@ export default function Chat() {
             </svg>
           </div>
           <div className="flex-1">
-            <h2 className="font-semibold text-base bg-gradient-to-r from-[#F48120] to-amber-400 bg-clip-text text-transparent">
+            <h2 className="font-pixel text-xs md:text-sm uppercase text-text">
               Travel Planner AI Agent
             </h2>
           </div>
@@ -200,14 +200,14 @@ export default function Chat() {
             <div className="h-full w-full flex items-center justify-center">
               <div className="w-full max-w-2xl mx-auto">
                 <div className="text-center mb-6 select-none">
-                  <div className="inline-flex items-center justify-center rounded-full bg-[#F48120]/10 text-[#F48120] p-3 mb-3">
+                  <div className="inline-flex items-center justify-center rounded-none bg-panel text-text border-4 border-border shadow-[4px_4px_0_0_#000] p-3 mb-3">
                     <AirplaneTilt size={24} />
                   </div>
-                  <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
+                  <h1 className="font-pixel text-base md:text-lg uppercase">
                     Where to next?
                   </h1>
                 </div>
-                <Card className="glass-card p-2 md:p-3 bg-neutral-100/60 dark:bg-neutral-900/60">
+                <Card className="card-panel p-2 md:p-3">
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
@@ -225,7 +225,7 @@ export default function Chat() {
                             ? "Please respond to the tool confirmation above..."
                             : "Where are you traveling and when?"
                         }
-                        className="flex w-full border border-neutral-200/60 dark:border-neutral-800/60 px-4 py-3 ring-offset-background placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-300 dark:focus-visible:ring-neutral-700 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900 disabled:cursor-not-allowed disabled:opacity-50 md:text-base min-h-[48px] max-h-[calc(70dvh)] overflow-hidden resize-none rounded-2xl !text-base dark:bg-neutral-900/60"
+                        className="flex w-full border-4 border-border px-4 py-3 placeholder:text-muted focus:outline-none focus:border-accent disabled:cursor-not-allowed disabled:opacity-50 md:text-base min-h-[48px] max-h-[calc(70dvh)] overflow-hidden resize-none rounded-none !text-base bg-panel text-text"
                         value={agentInput}
                         onChange={(e) => {
                           handleAgentInputChange(e);
@@ -249,7 +249,7 @@ export default function Chat() {
                       />
                       <button
                         type="submit"
-                        className="inline-flex items-center cursor-pointer justify-center gap-2 whitespace-nowrap text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-full p-2 h-fit border border-neutral-200 dark:border-neutral-800"
+                        className="pixel-btn px-3 py-2"
                         disabled={pendingToolCallConfirmation || !agentInput.trim()}
                         aria-label="Send message"
                       >
@@ -267,7 +267,7 @@ export default function Chat() {
                             } as unknown as React.ChangeEvent<HTMLTextAreaElement>;
                             handleAgentInputChange(event);
                           }}
-                          className="text-xs md:text-sm px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-850 transition-colors"
+                          className="pixel-btn pixel-btn-alt text-[10px] md:text-xs px-3 py-1.5"
                         >
                           {label}
                         </button>
@@ -313,14 +313,8 @@ export default function Chat() {
                               // biome-ignore lint/suspicious/noArrayIndexKey: immutable index
                               <div key={i}>
                                 <Card
-                                  className={`p-3 rounded-md bg-neutral-100 dark:bg-neutral-900 ${
-                                    isUser
-                                      ? "rounded-br-none"
-                                      : "rounded-bl-none border-assistant-border"
-                                  } ${
-                                    part.text.startsWith("scheduled message")
-                                      ? "border-accent/50"
-                                      : ""
+                                  className={`${isUser ? "chat-bubble-user" : "chat-bubble-agent"} ${
+                                    part.text.startsWith("scheduled message") ? "border-accent/50" : ""
                                   } relative`}
                                 >
                                   {part.text.startsWith(
@@ -339,7 +333,7 @@ export default function Chat() {
                                   />
                                 </Card>
                                 <p
-                                  className={`text-xs text-muted-foreground mt-1 ${
+                                  className={`font-pixel text-[10px] text-muted mt-1 ${
                                     isUser ? "text-right" : "text-left"
                                   }`}
                                 >
@@ -385,6 +379,14 @@ export default function Chat() {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Footer */}
+        <div className="px-4 py-3">
+          <div className="separator" />
+          <div className="mt-2 text-[10px] text-muted text-center font-sans">
+            Built with ❤️ and Cloudflare Workers
+          </div>
+        </div>
+
         {/* Input Area */}
         {agentMessages.length > 0 && (
         <form
@@ -399,7 +401,7 @@ export default function Chat() {
             });
             setTextareaHeight("auto"); // Reset height after submission
           }}
-          className="p-3 bg-neutral-50 absolute bottom-0 left-0 right-0 z-10 border-t border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900"
+          className="p-3 bg-panel absolute bottom-0 left-0 right-0 z-10 border-t-4 border-border"
         >
           <div className="flex items-center gap-2">
             <div className="flex-1 relative">
@@ -410,7 +412,7 @@ export default function Chat() {
                     ? "Please respond to the tool confirmation above..."
                     : "Send a message..."
                 }
-                className="flex w-full border border-neutral-200 dark:border-neutral-700 px-3 py-2  ring-offset-background placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-300 dark:focus-visible:ring-neutral-700 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-2xl !text-base pb-10 dark:bg-neutral-900"
+                className="flex w-full border-4 border-border px-3 py-2 placeholder:text-muted focus:outline-none focus:border-accent disabled:cursor-not-allowed disabled:opacity-50 md:text-sm min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-none !text-base pb-10 bg-panel text-text"
                 value={agentInput}
                 onChange={(e) => {
                   handleAgentInputChange(e);
@@ -438,7 +440,7 @@ export default function Chat() {
                   <button
                     type="button"
                     onClick={stop}
-                    className="inline-flex items-center cursor-pointer justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full p-1.5 h-fit border border-neutral-200 dark:border-neutral-800"
+                    className="pixel-btn pixel-btn-alt px-2 py-1"
                     aria-label="Stop generation"
                   >
                     <Stop size={16} />
@@ -446,7 +448,7 @@ export default function Chat() {
                 ) : (
                   <button
                     type="submit"
-                    className="inline-flex items-center cursor-pointer justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full p-1.5 h-fit border border-neutral-200 dark:border-neutral-800"
+                    className="pixel-btn px-2 py-1"
                     disabled={pendingToolCallConfirmation || !agentInput.trim()}
                     aria-label="Send message"
                   >
