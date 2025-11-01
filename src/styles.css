@@ -18,6 +18,55 @@
   @apply bg-neutral-50 dark:bg-neutral-850;
 }
 
+/* General markdown readability */
+.markdown-body p {
+  @apply my-2 leading-relaxed;
+}
+.markdown-body ul,
+.markdown-body ol {
+  @apply my-2 pl-5;
+}
+.markdown-body li {
+  @apply leading-relaxed mb-1;
+}
+.markdown-body code {
+  @apply rounded bg-neutral-100 dark:bg-neutral-900 px-1 py-0.5 text-[0.95em];
+}
+.markdown-body pre {
+  @apply overflow-x-auto rounded border border-border p-3 my-3 bg-neutral-50 dark:bg-neutral-900;
+}
+
+/* Agent-only markdown polish */
+.chat-bubble-agent .markdown-body {
+  @apply text-[13px] md:text-[14px];
+}
+.chat-bubble-agent .markdown-body h1,
+.chat-bubble-agent .markdown-body h2,
+.chat-bubble-agent .markdown-body h3,
+.chat-bubble-agent .markdown-body h4,
+.chat-bubble-agent .markdown-body h5,
+.chat-bubble-agent .markdown-body h6 {
+  @apply font-semibold mt-3 mb-2 leading-snug;
+}
+.chat-bubble-agent .markdown-body h1 { @apply text-lg; }
+.chat-bubble-agent .markdown-body h2 { @apply text-base; }
+.chat-bubble-agent .markdown-body h3 { @apply text-[15px]; }
+.chat-bubble-agent .markdown-body a {
+  @apply underline underline-offset-2 decoration-neutral-400 hover:decoration-neutral-600 dark:decoration-neutral-600 dark:hover:decoration-neutral-400;
+}
+.chat-bubble-agent .markdown-body blockquote {
+  @apply border-l-4 border-neutral-300 dark:border-neutral-700 pl-3 my-3 text-neutral-700 dark:text-neutral-300;
+}
+.chat-bubble-agent .markdown-body hr {
+  @apply my-3 border-neutral-200 dark:border-neutral-800;
+}
+.chat-bubble-agent .markdown-body img {
+  @apply max-w-full h-auto rounded border border-border my-2;
+}
+.chat-bubble-agent .markdown-body pre code {
+  @apply text-[12.5px] leading-6;
+}
+
 /* Custom variants */
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant interactive (&:where(.interactive, .interactive *));
@@ -407,7 +456,7 @@
   }
 
   .chat-bubble-agent {
-    @apply bg-panel text-text border-4 border-border shadow-[4px_4px_0_0_#000] p-3 rounded-none;
+    @apply bg-neutral-100 dark:bg-neutral-900 text-text border-4 border-border shadow-[4px_4px_0_0_#000] p-3 rounded-none leading-relaxed break-words whitespace-pre-wrap text-[13px] md:text-[14px] max-w-[85vw] md:max-w-[70%];
   }
 
   .card-panel {

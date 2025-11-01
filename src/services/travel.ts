@@ -23,32 +23,61 @@ async function resolveCityToCode(token: string, input: string): Promise<string |
   if (/^[A-Z]{3}$/.test(trimmed.toUpperCase())) {
     return trimmed.toUpperCase();
   }
-  // Strategy: try Cities endpoint first (narrower), then generic Locations as a fallback
-  const citiesParams = new URLSearchParams({ keyword: trimmed });
-  const citiesRes = await fetch(
-    `https://test.api.amadeus.com/v1/reference-data/locations/cities?${citiesParams.toString()}`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  if (citiesRes.ok) {
-    try {
-      const cities = (await citiesRes.json()) as any;
+
+  // Normalize to ASCII to avoid INVALID FORMAT on characters like "Niš"
+  const ascii = trimmed
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Za-z\s-]/g, "") // keep letters, spaces, hyphens
+    .trim();
+
+  // Known SR mappings as a last resort
+  const known: Record<string, string> = {
+    belgrade: "BEG",
+    "beograd": "BEG",
+    nis: "INI",
+    "ni\u0161": "INI",
+    "novi sad": "BEG" // nearest major airport
+  };
+  const lower = ascii.toLowerCase();
+  if (known[lower]) return known[lower];
+
+  // Strategy: try Cities endpoint first (narrower)
+  const citiesParams = new URLSearchParams({ keyword: ascii });
+  const citiesUrl = `https://test.api.amadeus.com/v1/reference-data/locations/cities?${citiesParams.toString()}`;
+  let res: Response | null = null;
+  try {
+    res = await fetch(citiesUrl, { headers: { Authorization: `Bearer ${token}` } });
+    if (res.ok) {
+      const cities = (await res.json()) as any;
       const firstCity = Array.isArray(cities?.data) ? cities.data[0] : null;
       if (firstCity?.iataCode) return String(firstCity.iataCode);
-    } catch {}
+    }
+  } catch {}
+
+  // Fallback: broader Locations with CITY,AIRPORT
+  const params = new URLSearchParams({ keyword: ascii, subType: "CITY,AIRPORT" });
+  const url = `https://test.api.amadeus.com/v1/reference-data/locations?${params.toString()}`;
+  try {
+    res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) {
+      console.error("Amadeus city resolve error", res.status, await safeText(res));
+      // last-resort: try known mappings again with original input
+      const origLower = trimmed
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+      return known[origLower] ?? null;
+    }
+    const data = (await res.json()) as any;
+    const first = Array.isArray(data?.data) ? data.data.find((d: any) => d?.iataCode) : null;
+    if (first?.iataCode) return String(first.iataCode);
+  } catch (e) {
+    console.error("Amadeus city resolve exception", e);
   }
 
-  const params = new URLSearchParams({ keyword: trimmed, subType: "CITY" });
-  const res = await fetch(
-    `https://test.api.amadeus.com/v1/reference-data/locations?${params.toString()}`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  if (!res.ok) {
-    console.error("Amadeus city resolve error", res.status, await safeText(res));
-    return null;
-  }
-  const data = (await res.json()) as any;
-  const first = Array.isArray(data?.data) ? data.data.find((d: any) => d?.iataCode) : null;
-  return first?.iataCode ?? null;
+  // Final attempt from known mappings
+  return known[lower] ?? null;
 }
 
 // =============== Amadeus helpers ===============
@@ -61,7 +90,7 @@ async function getAmadeusAccessToken(
     client_id: clientId,
     client_secret: clientSecret
   });
-  const res = await fetch(
+  const res = await fetchWithRetries(
     "https://test.api.amadeus.com/v1/security/oauth2/token",
     {
       method: "POST",
@@ -112,6 +141,23 @@ async function safeText(res: Response): Promise<string> {
     return await res.text();
   } catch {
     return "";
+  }
+}
+
+async function fetchWithRetries(url: string, init: RequestInit, opts?: { retries?: number; backoffMs?: number }): Promise<Response> {
+  const retries = opts?.retries ?? 2;
+  const base = opts?.backoffMs ?? 250;
+  let attempt = 0;
+  while (true) {
+    const res = await fetch(url, init);
+    // Retry on 429
+    if (res.status === 429 && attempt < retries) {
+      const wait = base * Math.pow(2, attempt);
+      await new Promise((r) => setTimeout(r, wait));
+      attempt++;
+      continue;
+    }
+    return res;
   }
 }
 
@@ -261,7 +307,7 @@ export async function searchFlights(
   if (params.returnDate) query.set("returnDate", params.returnDate);
   if (params.maxPrice) query.set("maxPrice", String(params.maxPrice));
 
-  const res = await fetch(
+  const res = await fetchWithRetries(
     `https://test.api.amadeus.com/v2/shopping/flight-offers?${query.toString()}`,
     {
       headers: { Authorization: `Bearer ${token}` }
@@ -323,7 +369,7 @@ export async function searchHotels(
   }
   
   // Step 1: Get hotelIds for the city (Amadeus requires hotelIds for v3 offers)
-  const hotelsRes = await fetch(
+  const hotelsRes = await fetchWithRetries(
     `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city?cityCode=${encodeURIComponent(
       cityCode
     )}`,
@@ -369,7 +415,7 @@ export async function searchHotels(
     query.set("roomQuantity", String(params.roomCount));
   }
 
-  const res = await fetch(
+  const res = await fetchWithRetries(
     `https://test.api.amadeus.com/v3/shopping/hotel-offers?${query.toString()}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
@@ -400,14 +446,24 @@ export async function searchHotels(
 }
 
 export async function getRecommendations(input: {
+  city?: string;
   interests?: string[];
   month?: string; // e.g. "October"
   budgetUSD?: number;
 }): Promise<string[]> {
+  const city = (input.city || "your destination").trim();
+  const month = (input.month || "").trim();
+  const interests = Array.isArray(input.interests) ? input.interests.filter(Boolean) : [];
+
+  const interestHint = interests.length > 0 ? ` Focus on ${interests.join(", ")}.` : "";
+  const seasonal = month
+    ? ` Consider seasonal activities in ${month} and check opening hours/weather.`
+    : " Plan a nearby day trip (nature, historic sites, or museums).";
+
   return [
-    "Try a day trip to Sintra and Cabo da Roca",
-    "Visit Jerónimos Monastery and Belém Tower",
-    "Explore Time Out Market for food options"
+    `Explore the old town and key landmarks in ${city}.${interestHint}`.trim(),
+    `Try local specialties at markets and street-food spots in ${city}.`,
+    seasonal
   ];
 }
 

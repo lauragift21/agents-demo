@@ -90,6 +90,7 @@ const getRecommendations = tool({
   description:
     "Get destination/activity recommendations based on interests, month/season and budget",
   parameters: z.object({
+    city: z.string().optional(),
     interests: z.array(z.string()).optional(),
     month: z.string().optional(),
     budgetUSD: z.number().int().positive().optional()

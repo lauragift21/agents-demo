@@ -75,24 +75,24 @@ export default function Chat() {
   // Travel-focused quick actions for the landing view
   const quickActions: { label: string; prompt: string }[] = [
     {
-      label: "City trip",
-      prompt: "Plan a 3-day city break in Lisbon with food and culture highlights"
+      label: "Belgrade city trip",
+      prompt: "Plan a 3-day city break in Belgrade with food, history, and nightlife highlights"
     },
     {
       label: "Find flights",
-      prompt: "Search flights AMS → LIS leaving Oct 8 and returning Oct 16 under $800 for one passenger"
+      prompt: "Search flights AMS → BEG leaving Dec 25 or in January under 200,000 RSD for one passenger"
     },
     {
       label: "Stay options",
-      prompt: "Find hotels in Lisbon for 2 guests with great walkability, budget $600"
+      prompt: "Find hotels in Belgrade for 2 guests with great walkability, budget 124,000 RSD"
     },
     {
       label: "Itinerary",
-      prompt: "Create a 5-day Portugal itinerary covering Lisbon, Sintra, and Porto"
+      prompt: "Create a 5-day Serbia itinerary covering Belgrade, Novi Sad, Niš, and Zlatibor"
     },
     {
       label: "Packing list",
-      prompt: "Make a minimalist packing list for autumn travel in Portugal"
+      prompt: "Make a minimalist packing list for autumn travel in Serbia"
     }
   ];
 
@@ -324,16 +324,18 @@ export default function Chat() {
                                       🕒
                                     </span>
                                   )}
-                                  <MemoizedMarkdown
-                                    id={`${m.id}-${i}`}
-                                    content={part.text.replace(
-                                      /^scheduled message: /,
-                                      ""
-                                    )}
-                                  />
+                                  <div className="markdown-body">
+                                    <MemoizedMarkdown
+                                      id={`${m.id}-${i}`}
+                                      content={part.text.replace(
+                                        /^scheduled message: /,
+                                        ""
+                                      )}
+                                    />
+                                  </div>
                                 </Card>
                                 <p
-                                  className={`font-pixel text-[10px] text-muted mt-1 ${
+                                  className={`font-pixel text-[10px] md:text-[11px] text-muted mt-1.5 ${
                                     isUser ? "text-right" : "text-left"
                                   }`}
                                 >
