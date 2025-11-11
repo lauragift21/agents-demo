@@ -1,7 +1,5 @@
 # ✈️ Travel Planner AI Agent (Cloudflare Agents Demo)
 
-![agents-header](https://github.com/user-attachments/assets/f6d99eeb-1803-4495-9c5e-3cf07a37b402)
-
 <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/agents-starter"><img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare"/></a>
 
 An end-to-end demo of a travel planning chat agent built on Cloudflare’s Agents platform, powered by the `agents` SDK and `ai-sdk`. It helps users plan trips, search flights and hotels, estimate budgets, and schedule reminders. Risky actions like bookings require explicit human confirmation. The UI is a modern, responsive React app that streams responses in real time.
