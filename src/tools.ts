@@ -54,7 +54,7 @@ const searchFlights = tool({
       .string()
       .min(3)
       .max(3)
-      .describe("Destination IATA code, e.g. LIS"),
+      .describe("Destination IATA code, e.g. AMS"),
     departDate: z.string().describe("YYYY-MM-DD"),
     returnDate: z.string().optional().describe("YYYY-MM-DD for round-trip"),
     passengers: z.number().int().min(1).default(1),

@@ -253,9 +253,9 @@ const mockFlights: FlightOption[] = [
 const mockHotels: HotelOption[] = [
   {
     id: "HT-1",
-    name: "Lisbon Central Hotel",
+    name: "Amsterdam Central Hotel",
     stars: 4,
-    location: "Lisbon City Center",
+    location: "Amsterdam City Center",
     checkIn: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
     checkOut: new Date(Date.now() + 12 * 24 * 3600 * 1000).toISOString(),
     pricePerNightUSD: 120,
@@ -263,9 +263,9 @@ const mockHotels: HotelOption[] = [
   },
   {
     id: "HT-2",
-    name: "Alfama Boutique",
+    name: "Jordaan Boutique",
     stars: 3,
-    location: "Alfama, Lisbon",
+    location: "Jordaan, Amsterdam",
     checkIn: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
     checkOut: new Date(Date.now() + 12 * 24 * 3600 * 1000).toISOString(),
     pricePerNightUSD: 90,

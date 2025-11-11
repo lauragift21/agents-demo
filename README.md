@@ -1,55 +1,68 @@
-# 🤖 Chat Agent Starter Kit
+# ✈️ Travel Planner AI Agent (Cloudflare Agents Demo)
 
 ![agents-header](https://github.com/user-attachments/assets/f6d99eeb-1803-4495-9c5e-3cf07a37b402)
 
 <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/agents-starter"><img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare"/></a>
 
-A starter template for building AI-powered chat agents using Cloudflare's Agent platform, powered by [`agents`](https://www.npmjs.com/package/agents). This project provides a foundation for creating interactive chat experiences with AI, complete with a modern UI and tool integration capabilities.
+An end-to-end demo of a travel planning chat agent built on Cloudflare’s Agents platform, powered by the `agents` SDK and `ai-sdk`. It helps users plan trips, search flights and hotels, estimate budgets, and schedule reminders. Risky actions like bookings require explicit human confirmation. The UI is a modern, responsive React app that streams responses in real time.
 
 ## Features
 
-- 💬 Interactive chat interface with AI
-- 🛠️ Built-in tool system with human-in-the-loop confirmation
-- 📅 Advanced task scheduling (one-time, delayed, and recurring via cron)
-- 🌓 Dark/Light theme support
-- ⚡️ Real-time streaming responses
-- 🔄 State management and chat history
-- 🎨 Modern, responsive UI
+- 💬 Travel-focused AI chat experience with quick actions
+- 🛠️ Tooling: flight search, hotel search, destination recommendations, budget estimation
+- ✅ Human-in-the-loop confirmations for bookings (flight, hotel)
+- 📅 Scheduling: schedule tasks and reminders (one-time, delayed, cron)
+- ⚡️ Real-time streaming with tool invocation metadata
+- 🌓 Dark/Light theme, polished responsive UI
+- 🧱 Cloudflare Workers + Durable Object agent, deployable with Wrangler
+
+## How it works
+
+- The agent runs in a Durable Object (`Chat`) and is routed via `routeAgentRequest`.
+- AI model is created via `@ai-sdk/openai` and used with `ai`’s `streamText`.
+- Tools are defined in `src/tools.ts` and fall into two categories:
+  - Auto-executing tools with an `execute` function (e.g., search flights/hotels).
+  - Confirmation-required tools without `execute` (e.g., bookings), executed via the `executions` map after user approval.
+- A scheduling tool leverages `agents/schedule` to support scheduled, delayed, and cron tasks.
+- The frontend (React) uses `agents/react` and `agents/ai-react` for streaming and tool confirmations.
+
+## Architecture at a glance
+
+- Cloudflare Workers entry: `src/server.ts`
+- Durable Object agent: `Chat` class extending `AIChatAgent`
+- UI: `src/app.tsx` React app with streaming and tool confirmation UI
+- Tools and execution handlers: `src/tools.ts`
+- Optional Cloudflare AI Gateway headers supported via `createOpenAI({ headers })`
 
 ## Prerequisites
 
-- Cloudflare account
+- Cloudflare account and Wrangler
+- Node.js 20+
 - OpenAI API key
+- Optional: Cloudflare AI Gateway base URL and token
+- Optional: Amadeus test/sandbox API credentials (used by the Amadeus check endpoint)
 
 ## Quick Start
 
-1. Create a new project:
-
-```bash
-npx create-cloudflare@latest --template cloudflare/agents-starter
-```
-
-2. Install dependencies:
+1. Install dependencies
 
 ```bash
 npm install
 ```
 
-3. Set up your environment:
+2. Configure environment
 
-Create a `.dev.vars` file:
+- Copy `.dev.vars.example` to `.dev.vars` and fill in values.
+- Set `OPENAI_API_KEY` (required). Optionally set `GATEWAY_BASE_URL` and `AI_GATEWAY_API_TOKEN` if using Cloudflare AI Gateway.
+- Optionally set `AMADEUS_CLIENT_ID` and `AMADEUS_CLIENT_SECRET` to test the Amadeus connectivity endpoint.
 
-```env
-OPENAI_API_KEY=your_openai_api_key
-```
-
-4. Run locally:
+3. Run locally
 
 ```bash
 npm start
 ```
 
-5. Deploy:
+4. Deploy to Cloudflare
 
 ```bash
 npm run deploy
@@ -59,12 +72,29 @@ npm run deploy
 
 ```
 ├── src/
-│   ├── app.tsx        # Chat UI implementation
-│   ├── server.ts      # Chat agent logic
-│   ├── tools.ts       # Tool definitions
-│   ├── utils.ts       # Helper functions
-│   └── styles.css     # UI styling
+│   ├── app.tsx          # React chat UI with streaming + confirmations
+│   ├── server.ts        # Cloudflare Worker + Durable Object agent
+│   ├── tools.ts         # Tools and their execution handlers
+│   ├── utils.ts         # Helper utilities
+│   └── providers/       # UI providers (modals, tooltips, etc.)
+├── public/              # Static assets
+├── wrangler.jsonc       # Cloudflare config (DO binding, assets)
+├── .dev.vars.example    # Example environment variables
 ```
+
+## Environment variables
+
+Reference: `.dev.vars.example`
+
+- `OPENAI_API_KEY` (required): OpenAI API key
+- `GATEWAY_BASE_URL` (optional): Cloudflare AI Gateway base URL
+- `AI_GATEWAY_API_TOKEN` (optional): Gateway token for request auth header
+- `AMADEUS_CLIENT_ID` and `AMADEUS_CLIENT_SECRET` (optional): Used by `/check-amadeus` endpoint to verify OAuth token issuance
+
+## Built-in endpoints
+
+- `GET /check-open-ai-key` returns `{ success: boolean }` indicating if `OPENAI_API_KEY` is configured.
+- `GET /check-amadeus` attempts OAuth client credentials flow using provided Amadeus keys and returns a status payload.
 
 ## Customization Guide
 

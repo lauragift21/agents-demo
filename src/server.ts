@@ -1,3 +1,7 @@
+/**
+ * Server entry point for handling requests to the AI chat agent
+ * This is where the AI chat agent is initialized and configured
+ */
 import { routeAgentRequest, type Schedule } from "agents";
 
 import { unstable_getSchedulePrompt } from "agents/schedule";
@@ -19,7 +23,10 @@ import { env } from "cloudflare:workers";
 // the AI SDK will use the provider's default.
 const openai = createOpenAI({
   apiKey: env.OPENAI_API_KEY,
-  baseURL: env.GATEWAY_BASE_URL || undefined
+  baseURL: env.GATEWAY_BASE_URL || undefined,
+  headers: {
+    "cf-aig-authorization": `Bearer ${env.AI_GATEWAY_API_TOKEN}`,
+  }
 });
 
 const model = openai("gpt-4o-2024-11-20");

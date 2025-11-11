@@ -70,29 +70,27 @@ export default function Chat() {
     setTheme(newTheme);
   };
 
-  // Trip mode removed
-
   // Travel-focused quick actions for the landing view
   const quickActions: { label: string; prompt: string }[] = [
     {
-      label: "Belgrade city trip",
-      prompt: "Plan a 3-day city break in Belgrade with food, history, and nightlife highlights"
+      label: "Amsterdam city trip",
+      prompt: "Plan a 3-day city break in Amsterdam with food, history, canals, and nightlife highlights"
     },
     {
       label: "Find flights",
-      prompt: "Search flights AMS → BEG leaving Dec 25 or in January under 200,000 RSD for one passenger"
+      prompt: "Search flights JFK → AMS leaving Dec 25 or in January under €1200 for one passenger"
     },
     {
       label: "Stay options",
-      prompt: "Find hotels in Belgrade for 2 guests with great walkability, budget 124,000 RSD"
+      prompt: "Find hotels in Amsterdam for 2 guests with great walkability, budget €400"
     },
     {
       label: "Itinerary",
-      prompt: "Create a 5-day Serbia itinerary covering Belgrade, Novi Sad, Niš, and Zlatibor"
+      prompt: "Create a 5-day Netherlands itinerary covering Amsterdam, Utrecht, Rotterdam, and Haarlem"
     },
     {
       label: "Packing list",
-      prompt: "Make a minimalist packing list for autumn travel in Serbia"
+      prompt: "Make a minimalist packing list for autumn travel in the Netherlands"
     }
   ];
 
@@ -170,8 +168,6 @@ export default function Chat() {
               onClick={() => setShowDebug((prev) => !prev)}
             />
           </div>
-
-          {/* Trip mode UI removed */}
 
           <Button
             variant="ghost"
